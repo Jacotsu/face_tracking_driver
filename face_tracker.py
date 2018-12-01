@@ -54,15 +54,24 @@ class FaceTracker:
         return face_locations, face_names
 
     def get_center_of_face_bounds(self, face_location):
-        return ((face_location[0]+face_location[2])/(2*self.scale_factor),
-                (face_location[1]+face_location[3])/(2*self.scale_factor))
+        return ((face_location[0]+face_location[2])/2,
+                (face_location[1]+face_location[3])/2)
 
     def calculate_displacement_vector(self, frame, face_location):
-        pos = self.get_center_of_face_bounds((face_location[0]/frame.shape[0],
-                                              face_location[1]/frame.shape[1],
-                                              face_location[2]/frame.shape[0],
-                                              face_location[3]/frame.shape[1])
-                                             )
+        logging.debug(f"{face_location}, {frame.shape}")
+        normalized_locations = (
+                                (-face_location[0]/self.scale_factor +
+                                 frame.shape[0]/2)/frame.shape[0],
+                                (face_location[1]/self.scale_factor -
+                                 frame.shape[1]/2)/frame.shape[1],
+                                (-face_location[2]/self.scale_factor +
+                                 frame.shape[0]/2)/frame.shape[0],
+                                (face_location[3]/self.scale_factor -
+                                 frame.shape[1]/2)/frame.shape[1],
+                                )
+        logging.debug(normalized_locations)
+        pos = self.get_center_of_face_bounds(normalized_locations)
+        logging.debug(pos)
         displacement = (self.pivot[0] - pos[0], self.pivot[1] - pos[1])
         length = math.hypot(*displacement)
         logging.debug(length)
@@ -70,7 +79,8 @@ class FaceTracker:
             self.triggered = True
         elif length < self.rest_threshold:
             self.triggered = False
-            return (0, 0)
 
         if self.triggered:
             return displacement
+
+        return (0, 0)

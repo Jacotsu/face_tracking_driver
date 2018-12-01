@@ -11,7 +11,7 @@ class VideoFrontend():
         y_res = frame.shape[0]
         abs_radius = int(hypot(x_res, y_res)*radius)
         abs_center = (int((center[0] + 1)*x_res/2),
-                      int((center[1] + 1)*y_res/2))
+                      int((-center[1] + 1)*y_res/2))
         cv2.circle(frame, abs_center, abs_radius, color)
         return frame
 

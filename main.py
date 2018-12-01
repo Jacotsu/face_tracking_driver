@@ -13,9 +13,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
 
     parser.add_argument('face_to_track',
-                        nargs=1,
+                        type=str,
                         help='The filename of the image that contains the'
-                        'face to track')
+                        ' face to track')
 
     parser.add_argument('-d', '--debug',
                         action='store_true',
@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-t', '--distance-threshold-for-movement',
                         dest='distance_threshold',
-                        nargs=1, default=0.2, type=float,
+                        default=0.2, type=float,
                         choices=RangeContainer(0, 1),
                         help='The distance threshold relative to the pivot'
                         'point that must be excedeed to'
@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-r', '--distance-threshold-for-rest',
                         dest='rest_threshold',
-                        nargs=1, default=0.05, type=float,
+                        default=0.05, type=float,
                         choices=RangeContainer(0, 1),
                         help='The distance threshold relative to the pivot'
                         'point that you consider an acceptable minimum'
@@ -41,23 +41,23 @@ if __name__ == '__main__':
                         'of the diagonal length in pixels of the video feed')
 
     parser.add_argument('-s', '--scale-factor',
-                        dest='scale-factor',
-                        nargs=1, default=0.2, type=float,
+                        dest='scale_factor',
+                        default=0.2, type=float,
                         choices=RangeContainer(0, 1),
                         help='The scale factor for image processing. Smaller'
                         'values will make the processing faster but '
                         'it will be less accurate.')
 
     parser.add_argument('-f', '--faces-folder',
-                        dest='face_folder',
-                        nargs=1, default='faces', type=str,
-                        help='The folders which contains the labeled faces'
-                        'pictures. This is useful for debugging purposes')
+                        dest='faces_folder',
+                        default='faces', type=str,
+                        help='The folder which contains the labeled faces'
+                        ' pictures. This is useful for debugging purposes')
 
     parser.add_argument('-p', '--pivot-point',
                         dest='pivot_point',
                         nargs=2, default=(0, 0), type=float,
-                        choices=RangeContainer(0, 1),
+                        choices=RangeContainer(-1, 1),
                         help='The point from which the distances are measured.'
                         '(The point must be expressed in OpenGL screen coords'
                         ' aka bottom-left is (-1, -1) and top-right is (1, 1)')
@@ -67,7 +67,11 @@ if __name__ == '__main__':
         logging.getLogger().setLevel(logging.DEBUG)
 
     webcam = stream_backend.WebcamBackend()
-    f_tracker = face_tracker.FaceTracker()
+    f_tracker = face_tracker.FaceTracker(threshold=args.distance_threshold,
+                                         rest_threshold=args.rest_threshold,
+                                         pivot=args.pivot_point,
+                                         scale_factor=args.scale_factor,
+                                         faces_folder=args.faces_folder)
 
     driver = command_output.GenericOutput()
 
@@ -79,7 +83,7 @@ if __name__ == '__main__':
             show_window.highlight_faces(frame,
                                         face_locations,
                                         face_names,
-                                        args.face_to_track[0])
+                                        args.face_to_track)
             show_window.draw_relative_circle(frame, args.pivot_point,
                                              args.distance_threshold)
 
@@ -88,7 +92,7 @@ if __name__ == '__main__':
                                              (0, 255, 0))
             try:
                 tracked_face_loc = face_locations[face_names.
-                                                  index(args.face_to_track[0])]
+                                                  index(args.face_to_track)]
                 displacement = f_tracker.\
                     calculate_displacement_vector(frame, tracked_face_loc)
                 driver.update(displacement)
@@ -103,7 +107,7 @@ if __name__ == '__main__':
             face_locations, face_names = f_tracker.process_frame(frame)
             try:
                 tracked_face_loc = face_locations(face_names.
-                                                  index(args.face_to_track[0]))
+                                                  index(args.face_to_track))
                 displacement = f_tracker.\
                     calculate_displacement_vector(frame, tracked_face_loc)
                 driver.update(displacement)

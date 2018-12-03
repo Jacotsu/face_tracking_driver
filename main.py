@@ -10,7 +10,8 @@ from utils import RangeContainer
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser = argparse.ArgumentParser(description='Track a face and drive a'
+                                     'device')
 
     parser.add_argument('face_to_track',
                         type=str,
@@ -106,8 +107,8 @@ if __name__ == '__main__':
             frame = webcam.get_frame()
             face_locations, face_names = f_tracker.process_frame(frame)
             try:
-                tracked_face_loc = face_locations(face_names.
-                                                  index(args.face_to_track))
+                tracked_face_loc = face_locations[face_names.
+                                                  index(args.face_to_track)]
                 displacement = f_tracker.\
                     calculate_displacement_vector(frame, tracked_face_loc)
                 driver.update(displacement)
